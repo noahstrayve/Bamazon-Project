@@ -92,17 +92,30 @@ function selectInventory() {
             res[0].inStock
         );
 
-        runSearch();
+        confirmer();
       });
     });
 }
 
 function confirmer() {
-  
+  inquirer
+    .prompt({
+      type: "confirm",
+      message: "Is this correct?",
+      name: "confirmOrder",
+      default: true
+    })
+    .then(function(answer) {
+      if (answer.confirmOrder === true) {
+        selectQuantity();
+      } else if (answer.confirmOrder === false) {
+        runSearch();
+      }
+  });
 }
 
 function selectQuantity() {
-
+  console.log("ayyy you made it this far")
 }
 
 
@@ -112,8 +125,10 @@ function selectQuantity() {
 
 function thankYou() {
   console.log("Thank you for shopping with Bamazon")
+  connection.end();
 }
 
 function getOut() {
   console.log("WELL THEN, BEAT IT BOZO!!!!")
+  connection.end();
 }
