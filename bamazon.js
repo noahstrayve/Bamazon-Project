@@ -19,9 +19,11 @@ connection.connect(function(err) {
   runSearch();
 });
 
+var numbersImUsing = [];
+
 function greetingMessage() {
   console.log("-----------------------------------------------------------------------------")
-  console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~WELCOME TO BAMAZON!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~ WELCOME TO BAMAZON! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   console.log("-----------------------------------------------------------------------------")
 };
 
@@ -57,7 +59,7 @@ function runSearch() {
 function displayInventory() {
   connection.query("SELECT * FROM inventory", function(err, res) {
     if (err) throw err;
-    // Log all results of the SELECT statement
+
     for (var i = 0; i < res.length; i++) {
           console.log("Product ID: " + res[i].id +
             " || Item: " +
@@ -78,11 +80,14 @@ function selectInventory() {
     .prompt({
       name: "item",
       type: "input",
-      message: "What song would you like to look for?"
+      message: "Please enter the product ID of your desired item"
     })
     .then(function(answer) {
       console.log(answer.item);
+      var selectedID = answer.item;
       connection.query("SELECT * FROM inventory WHERE ?", { id: answer.item }, function(err, res) {
+        numbersImUsing.push(answer.item)
+        numbersImUsing.push(res[0].inStock)
         console.log(
           "You have selected: " +
             res[0].productName +
@@ -115,16 +120,50 @@ function confirmer() {
 }
 
 function selectQuantity() {
-  console.log("ayyy you made it this far")
+  inquirer
+    .prompt({
+      name: "amount",
+      type: "input",
+      message: "How many would you like to order?"
+    })
+    .then(function(answer) {
+      numbersImUsing.push(answer.amount)
+      var reductionEquation = (numbersImUsing[1] - numbersImUsing[2]);
+      var query = connection.query(
+        "UPDATE inventory SET ? WHERE ?",
+        [
+          {
+            inStock: reductionEquation
+          },
+          {
+            id: numbersImUsing[0]
+          }
+        ],
+      );
+      thankYou();
+    });
 }
 
-
-
-
-
+function updatedInventory() {
+  connection.query("SELECT * FROM inventory", function(err, res) {
+    if (err) throw err;
+    for (var i = 0; i < res.length; i++) {
+          console.log("Product ID: " + res[i].id +
+            " || Item: " +
+            res[i].productName +
+            " || Price ($): " +
+            res[i].price +
+            " || In Stock: " +
+            res[i].inStock
+          );
+          console.log("")
+        }
+  });
+}
 
 function thankYou() {
   console.log("Thank you for shopping with Bamazon")
+  updatedInventory()
   connection.end();
 }
 
@@ -132,3 +171,5 @@ function getOut() {
   console.log("WELL THEN, BEAT IT BOZO!!!!")
   connection.end();
 }
+
+var numbersImUsing = [];
